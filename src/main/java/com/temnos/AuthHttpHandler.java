@@ -94,13 +94,26 @@ public class AuthHttpHandler implements HttpHandler {
         
         // Handle 401 or 302 related to expired token/session
         if (host.equalsIgnoreCase(config.getApiDomain()) && responseReceived.statusCode() == 401) {
-            logging.logToOutput("Received 401 on API domain. Invalidating tokens.");
-            tokenManager.invalidate();
+            String authHeader = responseReceived.initiatingRequest().headerValue("Authorization");
+            String oldJwt = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                oldJwt = authHeader.substring(7);
+            }
+            logging.logToOutput("Received 401 on API domain. Requesting token invalidation.");
+            tokenManager.invalidate(oldJwt, null);
         } else if (host.equalsIgnoreCase(config.getMainDomain()) && responseReceived.statusCode() == 302) {
             String location = responseReceived.headerValue("Location");
             if (location != null && location.contains("/sgconnect/oauth2/authorize")) {
-                logging.logToOutput("Received 302 redirect to SSO on Main domain. Invalidating tokens.");
-                tokenManager.invalidate();
+                String cookieHeader = responseReceived.initiatingRequest().headerValue("Cookie");
+                String oldJsession = null;
+                if (cookieHeader != null) {
+                    Matcher m = Pattern.compile("JSESSIONID=([^;]+)").matcher(cookieHeader);
+                    if (m.find()) {
+                        oldJsession = m.group(1);
+                    }
+                }
+                logging.logToOutput("Received 302 redirect to SSO on Main domain. Requesting token invalidation.");
+                tokenManager.invalidate(null, oldJsession);
             }
         }
 

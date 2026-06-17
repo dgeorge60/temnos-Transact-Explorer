@@ -39,11 +39,25 @@ public class TokenManager {
         return jwtToken;
     }
 
-    public void invalidate() {
+    public void invalidate(String failedJwt, String failedJsession) {
         synchronized (lock) {
-            jsessionId = null;
-            jwtToken = null;
-            logging.logToOutput("Tokens invalidated. Will refresh on next request.");
+            boolean shouldInvalidate = false;
+            
+            if (failedJwt != null && failedJwt.equals(this.jwtToken)) {
+                shouldInvalidate = true;
+            }
+            
+            if (failedJsession != null && failedJsession.equals(this.jsessionId)) {
+                shouldInvalidate = true;
+            }
+
+            if (shouldInvalidate) {
+                this.jsessionId = null;
+                this.jwtToken = null;
+                logging.logToOutput("Tokens invalidated. Will refresh on next request.");
+            } else {
+                logging.logToOutput("Token invalidation ignored. The failed token was already replaced or is null. This prevents license exhaustion!");
+            }
         }
     }
 
