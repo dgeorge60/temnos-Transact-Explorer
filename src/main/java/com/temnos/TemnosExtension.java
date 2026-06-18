@@ -26,6 +26,12 @@ public class TemnosExtension implements BurpExtension {
 
         api.http().registerHttpHandler(httpHandler);
 
+        
+        SessionKeepAlive keepAlive = new SessionKeepAlive(api, tokenManager, configUI);
+        Thread keepAliveThread = new Thread(keepAlive);
+        keepAliveThread.setDaemon(true);
+        keepAliveThread.start();
+        
         logging.logToOutput("Temnos Auth Extension Loaded.");
     }
 }
