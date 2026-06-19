@@ -132,11 +132,13 @@ public class ConfigUI {
     }
 
     public String getLogoutReq1() {
-        return txtLogoutReq1.getText();
+        String text = txtLogoutReq1.getText();
+        return text != null ? text.replace("\r\n", "\n").replace("\n", "\r\n") : null;
     }
 
     public String getLogoutReq2() {
-        return txtLogoutReq2.getText();
+        String text = txtLogoutReq2.getText();
+        return text != null ? text.replace("\r\n", "\n").replace("\n", "\r\n") : null;
     }
 
 
